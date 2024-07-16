@@ -67,6 +67,11 @@ router.post(
   checkAccessWithKey(),
   UserController.updateCategory
 );
+router.put(
+  "/user/updateCoins",
+  checkAccessWithKey(),
+  UserController.updateCoins
+);
 router.post(
   "/user/update",
   checkAccessWithKey(),

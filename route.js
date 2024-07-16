@@ -13,6 +13,10 @@ route.use("/banner", BannerRoute);
 const CoinPlanRoute = require("./server/coinPlan/coinPlan.route");
 route.use("/coinPlan", CoinPlanRoute);
 
+//DiamondPlan route
+const DiamondPlanRoute = require("./server/diamondPlan/diamondPlanRoutes");
+route.use("/diamondPlan", DiamondPlanRoute);
+
 //vipPlan route
 const VIPPlanRoute = require("./server/vipPlan/vipPlan.route");
 route.use("/vipPlan", VIPPlanRoute);

@@ -1,13 +1,13 @@
-const CoinPlan = require('./coinPlan.model');
-const VIPPlan = require('../vipPlan/vipPlan.model');
-const User = require('../user/user.model');
-const Setting = require('../setting/setting.model');
-const Wallet = require('../wallet/wallet.model');
-const FakeUser = require('../../userCollection');
-const FakeEmail = require('../../emailCollection');
+const CoinPlan = require("./coinPlan.model");
+const VIPPlan = require("../vipPlan/vipPlan.model");
+const User = require("../user/user.model");
+const Setting = require("../setting/setting.model");
+const Wallet = require("../wallet/wallet.model");
+const FakeUser = require("../../userCollection");
+const FakeEmail = require("../../emailCollection");
 
 //google play
-const Verifier = require('google-play-billing-validator');
+const Verifier = require("google-play-billing-validator");
 
 //get coin plans
 exports.index = async (req, res) => {
@@ -17,16 +17,16 @@ exports.index = async (req, res) => {
     });
 
     if (!coinPlan)
-      return res.status(200).json({ status: false, message: 'No data found!' });
+      return res.status(200).json({ status: false, message: "No data found!" });
 
     return res
       .status(200)
-      .json({ status: true, message: 'Success!!', coinPlan });
+      .json({ status: true, message: "Success!!", coinPlan });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, error: error.message || "Server Error" });
   }
 };
 
@@ -35,13 +35,13 @@ exports.store = async (req, res) => {
   try {
     if (
       !req.body.diamonds ||
-      !req.body.dollar ||
+      !req.body.dollar
       // !req.body.rupee ||
-      !req.body.productKey
+      // !req.body.productKey
     )
       return res
         .status(200)
-        .json({ status: false, message: 'Invalid Details!' });
+        .json({ status: false, message: "Invalid Details!" });
 
     const coinPlan = new CoinPlan();
 
@@ -49,18 +49,18 @@ exports.store = async (req, res) => {
     coinPlan.dollar = req.body.dollar;
     // coinPlan.rupee = req.body.rupee;
     coinPlan.tag = req.body.tag;
-    coinPlan.productKey = req.body.productKey;
+    // coinPlan.productKey = req.body.productKey;
 
     await coinPlan.save();
 
     return res
       .status(200)
-      .json({ status: true, message: 'Success!', coinPlan });
+      .json({ status: true, message: "Success!", coinPlan });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, error: error.message || "Server Error" });
   }
 };
 
@@ -72,7 +72,7 @@ exports.update = async (req, res) => {
     if (!coinPlan) {
       return res
         .status(200)
-        .json({ status: false, message: 'Plan does not Exist!' });
+        .json({ status: false, message: "Plan does not Exist!" });
     }
 
     coinPlan.diamonds = req.body.diamonds;
@@ -85,12 +85,12 @@ exports.update = async (req, res) => {
 
     return res
       .status(200)
-      .json({ status: true, message: 'Success!', coinPlan });
+      .json({ status: true, message: "Success!", coinPlan });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, error: error.message || "Server Error" });
   }
 };
 
@@ -102,18 +102,18 @@ exports.destroy = async (req, res) => {
     if (!coinPlan)
       return res
         .status(200)
-        .json({ status: false, message: 'Plan does not Exist!' });
+        .json({ status: false, message: "Plan does not Exist!" });
 
     coinPlan.isDelete = true;
 
     await coinPlan.save();
 
-    return res.status(200).json({ status: true, message: 'Success!' });
+    return res.status(200).json({ status: true, message: "Success!" });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, error: error.message || "Server Error" });
   }
 };
 
@@ -124,7 +124,7 @@ exports.isTopToggle = async (req, res, next) => {
     if (!coinPlan) {
       return res
         .status(200)
-        .json({ status: false, message: 'CoinPlan not found' });
+        .json({ status: false, message: "CoinPlan not found" });
     }
     coinPlan.isTop = !coinPlan.isTop;
 
@@ -135,37 +135,37 @@ exports.isTopToggle = async (req, res, next) => {
     if (topPlan.length > 0 && coinPlan.isTop) {
       return res.status(200).json({
         status: false,
-        message: 'overflow ! only one coinPlan allowed in Top   .',
+        message: "overflow ! only one coinPlan allowed in Top   .",
       });
     }
     await coinPlan.save();
 
     return res
       .status(200)
-      .json({ status: true, message: 'success', data: coinPlan });
+      .json({ status: true, message: "success", data: coinPlan });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'server error' });
+      .json({ status: false, error: error.message || "server error" });
   }
 };
 
 //pay stripe api for android
 exports.createCustomer = async (req, res) => {
   try {
-    console.log('createCustomer api call : ', req.body);
+    console.log("createCustomer api call : ", req.body);
 
     if (!req.body.userId || !req.body.planId || !req.body.currency) {
       return res
         .status(200)
-        .json({ status: false, message: 'Oops ! Invalid details!' });
+        .json({ status: false, message: "Oops ! Invalid details!" });
     }
     const user = await User.findById(req.body.userId);
     if (!user) {
       return res
         .status(200)
-        .json({ status: false, message: 'User does not Exists !' });
+        .json({ status: false, message: "User does not Exists !" });
     }
     function isValidEmail(email) {
       var pattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -181,18 +181,18 @@ exports.createCustomer = async (req, res) => {
     if (!plan) {
       return res
         .status(200)
-        .json({ status: false, message: 'Plan does not Exists !' });
+        .json({ status: false, message: "Plan does not Exists !" });
     }
     const setting = await Setting.findOne();
     if (!setting) {
       return res
         .status(200)
-        .json({ status: false, message: 'Setting does not Exists !' });
+        .json({ status: false, message: "Setting does not Exists !" });
     }
     let email = user?.email;
     let name = user?.name;
     if (!email || !isValidEmail(email)) {
-      console.log('innner');
+      console.log("innner");
       let fakeEmail = await FakeEmail.aggregate([{ $sample: { size: 1 } }]);
       email = fakeEmail[0]?.email;
     }
@@ -201,18 +201,18 @@ exports.createCustomer = async (req, res) => {
       email = fakeUser[0]?.name;
     }
 
-    const stripe = require('stripe')(setting?.stripeSecretKey);
+    const stripe = require("stripe")(setting?.stripeSecretKey);
     const customer = await stripe.customers.create({
       email: email,
       name: name,
     });
     const ephemeralKey = await stripe.ephemeralKeys.create(
       { customer: customer.id },
-      { apiVersion: '2023-10-16' }
+      { apiVersion: "2023-10-16" }
     );
     const paymentIntent = await stripe.paymentIntents.create({
       amount:
-        req.body.currency === 'inr' ? plan?.rupee * 100 : plan?.dollar * 100,
+        req.body.currency === "inr" ? plan?.rupee * 100 : plan?.dollar * 100,
       currency: req.body.currency,
       customer: customer.id,
       // payment_method_types: [
@@ -222,7 +222,7 @@ exports.createCustomer = async (req, res) => {
         enabled: true,
       },
     });
-    console.log('...........paymentIntent ', paymentIntent);
+    console.log("...........paymentIntent ", paymentIntent);
     return res.status(200).json({
       status: true,
       paymentIntent: paymentIntent.id,
@@ -235,19 +235,19 @@ exports.createCustomer = async (req, res) => {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Internal Server Error' });
+      .json({ status: false, error: error.message || "Internal Server Error" });
   }
 };
 
 exports.payStripe = async (req, res) => {
   try {
-    console.log(req.body, 'req.body. in stripe');
+    console.log(req.body, "req.body. in stripe");
     if (req.body.userId && req.body.planId) {
-      const user = await User.findById(req.body.userId).populate('level');
+      const user = await User.findById(req.body.userId).populate("level");
       if (!user) {
         return res.send({
           status: false,
-          message: 'User does not exist!!',
+          message: "User does not exist!!",
           user: {},
         });
       }
@@ -256,7 +256,7 @@ exports.payStripe = async (req, res) => {
       if (!plan) {
         return res.send({
           status: false,
-          message: 'Plan does not exist!!',
+          message: "Plan does not exist!!",
           user: {},
         });
       }
@@ -313,16 +313,16 @@ exports.payStripe = async (req, res) => {
       income.diamond = plan.diamonds;
       income.planId = plan._id;
       income.type = 2;
-      income.paymentGateway = 'Stripe';
-      income.date = new Date().toLocaleString('en-US', {
-        timeZone: 'Asia/Kolkata',
+      income.paymentGateway = "Stripe";
+      income.date = new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Kolkata",
       });
 
       await income.save();
 
       return res.send({
         status: true,
-        message: 'Success!!',
+        message: "Success!!",
         user,
       });
       // } else {
@@ -336,7 +336,7 @@ exports.payStripe = async (req, res) => {
     } else {
       return res.send({
         status: false,
-        message: 'Invalid Details!',
+        message: "Invalid Details!",
         user: {},
       });
     }
@@ -359,21 +359,21 @@ exports.payGooglePlay = async (req, res) => {
     )
       return res
         .status(200)
-        .json({ status: false, message: 'Invalid Details!' });
+        .json({ status: false, message: "Invalid Details!" });
 
-    const user = await User.findById(req.body.userId).populate('level');
+    const user = await User.findById(req.body.userId).populate("level");
 
     if (!user) {
       return res
         .status(200)
-        .json({ status: false, message: 'User does not Exist!', user: {} });
+        .json({ status: false, message: "User does not Exist!", user: {} });
     }
 
     const plan = await CoinPlan.findById(req.body.planId);
     if (!plan) {
       return res
         .status(200)
-        .json({ status: false, message: 'Plan does not Exist!', user: {} });
+        .json({ status: false, message: "Plan does not Exist!", user: {} });
     }
 
     // const setting = await Setting.findOne({});
@@ -405,14 +405,14 @@ exports.payGooglePlay = async (req, res) => {
     income.diamond = plan.diamonds;
     income.type = 2;
     income.planId = plan._id;
-    income.paymentGateway = 'Google Play';
-    income.date = new Date().toLocaleString('en-US', {
-      timeZone: 'Asia/Kolkata',
+    income.paymentGateway = "Google Play";
+    income.date = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
     });
 
     await income.save();
 
-    return res.status(200).json({ status: true, message: 'success', user });
+    return res.status(200).json({ status: true, message: "success", user });
     // } else {
     //   return res
     //     .status(200)
@@ -422,8 +422,8 @@ exports.payGooglePlay = async (req, res) => {
     console.log(error);
     return res.status(200).json({
       status: false,
-      message: error.errorMessage || 'Server Error',
-      user: '',
+      message: error.errorMessage || "Server Error",
+      user: "",
     });
   }
 };
@@ -438,7 +438,7 @@ exports.purchaseHistory = async (req, res) => {
       if (!user)
         return res
           .status(200)
-          .json({ status: false, message: 'User does not Exist!!' });
+          .json({ status: false, message: "User does not Exist!!" });
 
       matchQuery = { type: 2, userId: user._id };
     }
@@ -448,13 +448,13 @@ exports.purchaseHistory = async (req, res) => {
 
     const addFieldQuery = {
       shortDate: {
-        $toDate: { $arrayElemAt: [{ $split: ['$date', ', '] }, 0] },
+        $toDate: { $arrayElemAt: [{ $split: ["$date", ", "] }, 0] },
       },
     };
 
     let dateFilterQuery = {};
 
-    if (req.query.startDate !== 'ALL' && req.query.endDate !== 'ALL') {
+    if (req.query.startDate !== "ALL" && req.query.endDate !== "ALL") {
       dateFilterQuery = {
         shortDate: {
           $gte: new Date(req.query.startDate),
@@ -477,29 +477,29 @@ exports.purchaseHistory = async (req, res) => {
       { $sort: { _id: -1 } },
       {
         $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'user',
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
         },
       },
       {
         $unwind: {
-          path: '$user',
+          path: "$user",
           preserveNullAndEmptyArrays: false,
         },
       },
       {
         $lookup: {
-          from: 'coinplans',
-          localField: 'planId',
-          foreignField: '_id',
-          as: 'plan',
+          from: "coinplans",
+          localField: "planId",
+          foreignField: "_id",
+          as: "plan",
         },
       },
       {
         $unwind: {
-          path: '$plan',
+          path: "$plan",
           preserveNullAndEmptyArrays: false,
         },
       },
@@ -507,10 +507,10 @@ exports.purchaseHistory = async (req, res) => {
         $project: {
           paymentGateway: 1,
           diamond: 1,
-          name: '$user.name',
-          dollar: '$plan.dollar',
-          rupee: '$plan.rupee',
-          purchaseDate: '$date',
+          name: "$user.name",
+          dollar: "$plan.dollar",
+          rupee: "$plan.rupee",
+          purchaseDate: "$date",
         },
       },
       {
@@ -528,7 +528,7 @@ exports.purchaseHistory = async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      message: 'Success!!',
+      message: "Success!!",
       total:
         history[0].pageInfo.length > 0 ? history[0].pageInfo[0].totalRecord : 0,
       history: history[0].history,
@@ -537,6 +537,6 @@ exports.purchaseHistory = async (req, res) => {
     console.log(error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, error: error.message || "Server Error" });
   }
 };

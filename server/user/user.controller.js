@@ -106,7 +106,7 @@ exports.index = async (req, res) => {
       return res
         .status(200)
         .json({ status: false, message: "Data not found!" });
-    console.log(user)
+    console.log(user);
     return res.status(200).json({
       status: true,
       message: "Success!!",
@@ -583,7 +583,6 @@ exports.updateProfile = async (req, res) => {
         message: "User does not Exist!",
         user: {},
       });
-      
 
     if (req.files && req.files.image) {
       var image_ = user.image.split("storage");
@@ -613,7 +612,7 @@ exports.updateProfile = async (req, res) => {
     user.bio = req.body.bio;
     user.gender = req.body.gender;
     user.age = req.body.age;
-   
+
     await user.save();
 
     return res.status(200).json({ status: true, message: "Success!!", user });
@@ -627,12 +626,12 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// update profe category of user 
+// update profe category of user
 exports.updateCategory = async (req, res) => {
   console.log(req.body);
   try {
-    const user = await User.findOneAndUpdate( 
-      { _id: req.body.id }, 
+    const user = await User.findOneAndUpdate(
+      { _id: req.body.id },
       { category: req.body.category },
       { new: true } // This option returns the updated document
     );
@@ -640,20 +639,55 @@ exports.updateCategory = async (req, res) => {
     if (user) {
       res.status(200).json({
         success: true,
-        message: 'Category updated successfully',
+        message: "Category updated successfully",
         user: user,
       });
     } else {
       res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
   } catch (error) {
-    console.error('Error updating category:', error);
+    console.error("Error updating category:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while updating the category',
+      message: "An error occurred while updating the category",
+    });
+  }
+};
+// Update rCoins Of User
+exports.updateCoins = async (req, res) => {
+  console.log(req.body);
+  try {
+    // Find the user by ID
+    const user = await User.findById(req.body.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Calculate new total coins
+    const newCoins = +user.rCoin + req.body.rCoin;
+
+    // Update user with new coins
+    user.rCoin = newCoins;
+    await user.save();
+
+    // Respond with updated user object
+    res.status(200).json({
+      success: true,
+      message: "Coins delivered successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.error("Error delivering rcoin :", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the coins",
     });
   }
 };
