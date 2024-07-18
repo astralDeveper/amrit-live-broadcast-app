@@ -15,7 +15,7 @@ router.get(
 
 router.get(
   "/followerList",
-  checkAccessWithKey(),
+  // checkAccessWithKey(),
   FollowerController.followerList
 );
 
