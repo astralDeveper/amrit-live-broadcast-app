@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
     image: { type: String, default: "" },
     coverImage: { type: String, default: "" },
     countryFlagImage: { type: String, default: "" },
-    category:{type:String,default:null},
+    category: { type: String, default: null },
     country: String,
     ip: String,
     identity: String,
@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema(
     lastLogin: String,
     fcmToken: String,
     analyticDate: String,
-    
 
+    isDeviceBanned: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
     isBusy: { type: Boolean, default: false },
     isFake: { type: Boolean, default: false },
@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema(
     channel: { type: String, default: null },
 
     isBlock: { type: Boolean, default: false },
+    blockHours: { type: Number, default: 0 },
+    blockedAt: { type: Number, default: 0 },
     callId: { type: String, default: "" },
 
     isReferral: { type: Boolean, default: false },
@@ -75,7 +77,6 @@ const userSchema = new mongoose.Schema(
       count: { type: Number, default: 0 },
       date: { type: String, default: null },
     },
-  
   },
   {
     timestamps: true,

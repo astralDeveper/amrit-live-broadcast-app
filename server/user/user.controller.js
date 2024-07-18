@@ -13,6 +13,73 @@ const arrayShuffle = require("shuffle-array");
 const deleteFile = require("../../util/deleteFile");
 const { compressImage } = require("../../util/compressImage");
 const shuffleArray = require("shuffle-array");
+const { validationResult } = require('express-validator');  
+
+
+
+// devive ban
+exports.banDevice = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+
+    // Find the user by device ID
+    const user = await User.findOne({ deviceId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Device not found!' });
+    }
+
+    // Check if device is already banned
+    if (user.isDeviceBanned) {
+      return res.status(400).json({ success: false, message: 'Device is already banned!' });
+    }
+
+    // Perform the ban operation
+    user.isDeviceBanned = true;
+    user.deviceBannedAt = new Date();
+    
+    // Save the updated user object
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Device banned successfully!' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// Controller function to unban a device
+exports.unbanDevice = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+
+    // Find the user by device ID
+    const user = await User.findOne({ deviceId });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Device not found!' });
+    }
+
+    // Check if device is not banned
+    if (!user.isDeviceBanned) {
+      return res.status(400).json({ success: false, message: 'Device is not currently banned!' });
+    }
+
+    // Perform the unban operation
+    user.isDeviceBanned = false;
+    user.deviceBannedAt = null; // Clear the bannedAt timestamp
+    
+    // Save the updated user object
+    await user.save();
+
+    return res.status(200).json({ success: true, message: 'Device unbanned successfully!' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+
 
 // get users list
 exports.index = async (req, res) => {
@@ -656,6 +723,7 @@ exports.updateCategory = async (req, res) => {
     });
   }
 };
+
 // Update rCoins Of User
 exports.updateCoins = async (req, res) => {
   console.log(req.body);
@@ -940,7 +1008,29 @@ exports.referralCode = async (req, res) => {
 };
 
 // block unblock user
+// exports.blockUnblock = async (req, res) => {
+//   try {
+//     const user = await User.findById(req.params.userId);
+
+//     if (!user)
+//       return res
+//         .status(200)
+//         .json({ status: false, message: "User does not Exist!" });
+
+//     user.isBlock = !user.isBlock;
+
+//     await user.save();
+
+//     return res.status(200).json({ status: true, message: "Success!!", user });
+//   } catch (error) {
+//     console.log(error);
+//     return res
+//       .status(500)
+//       .json({ status: false, error: error.message || "Server Error" });
+//   }
+// };
 exports.blockUnblock = async (req, res) => {
+  console.log(req.params);
   try {
     const user = await User.findById(req.params.userId);
 
@@ -949,16 +1039,62 @@ exports.blockUnblock = async (req, res) => {
         .status(200)
         .json({ status: false, message: "User does not Exist!" });
 
-    user.isBlock = !user.isBlock;
+    const blockDuration = req.body.blockHours; // Retrieve blockHours from request body
 
-    await user.save();
+    if (!blockDuration || isNaN(blockDuration)) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Invalid block duration!" });
+    }
 
-    return res.status(200).json({ status: true, message: "Success!!", user });
+    if (user.isBlock) {
+      const blockExpiry = new Date(user.blockedAt);
+      const currentTimestamp = new Date();
+
+      if (currentTimestamp.getTime() > blockExpiry.getTime()) {
+        // User can be unblocked because the block duration has elapsed
+        user.isBlock = false;
+        user.blockedAt = null;
+        user.blockHours = null; // Reset blockHours when unblocking
+        await user.save();
+        return res
+          .status(200)
+          .json({ status: true, message: "User unblocked!" });
+      } else {
+        // Check if the user wants to unblock before the block duration expires
+        const unblockBefore = req.body.unblockBefore; // Assuming unblockBefore is provided in request body
+
+        if (unblockBefore && unblockBefore === true) {
+          user.isBlock = false;
+          user.blockedAt = null;
+          user.blockHours = null; // Reset blockHours when unblocking
+          await user.save();
+          return res
+            .status(200)
+            .json({ status: true, message: "User unblocked before time!" });
+        } else {
+          // User is still blocked and cannot be unblocked yet
+          return res
+            .status(400)
+            .json({ status: false, message: "User still blocked!" });
+        }
+      }
+    } else {
+      // Block the user
+      user.isBlock = true;
+      user.blockedAt = new Date(
+        new Date().getTime() + blockDuration * 60 * 60 * 1000
+      );
+      user.blockHours = blockDuration; // Set blockHours when blocking
+      await user.save();
+      return res.status(200).json({ status: true, message: "User blocked!" });
+    }
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ status: false, error: error.message || "Server Error" });
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      error: error.message || "Server Error" || " error",
+    });
   }
 };
 
