@@ -9,7 +9,7 @@ var checkAccessWithKey = require("../../checkAccess");
 
 router.get(
   "/followingList",
-  checkAccessWithKey(),
+  // checkAccessWithKey(),
   FollowerController.followingList
 );
 
