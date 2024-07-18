@@ -154,6 +154,7 @@ exports.unFollow = async (req, res) => {
 
 // hirenbhai: date:6/1/22 toggle follow unFollow
 exports.followUnFollow = async (req, res) => {
+  console.log(req.body);
   try {
     if (!req.body.fromUserId || !req.body.toUserId)
       return res

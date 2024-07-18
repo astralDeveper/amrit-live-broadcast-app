@@ -28,7 +28,7 @@ router.get(
 
 router.post(
   "/followUnfollow",
-  checkAccessWithKey(),
+  // checkAccessWithKey(),
   FollowerController.followUnFollow
 );
 // router.post("/follow", checkAccessWithKey(), FollowerController.follow);
