@@ -26,6 +26,9 @@ router.patch("/updateCode", AdminController.updateCode);
 //admin login
 router.post("/login", AdminController.login);
 
+// agency login
+router.post("/login/agency", AdminController.agencyLogin);
+
 //update admin password
 router.put("/", AdminMiddleware, AdminController.updatePassword);
 

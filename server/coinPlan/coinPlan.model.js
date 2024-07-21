@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const coinPlanSchema = new mongoose.Schema(
   {
-    diamonds: Number,
+    rCoin: Number,
     dollar: Number,
     rupee: Number,
     tag: String,

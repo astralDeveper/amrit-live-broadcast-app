@@ -29,6 +29,10 @@ route.use("/giftCategory", GiftCategoryRoute);
 const GiftRoute = require("./server/gift/gift.route");
 route.use("/gift", GiftRoute);
 
+//agency route
+const AgencyRoute = require("./server/agency/agency.route");
+route.use("/agency", AgencyRoute);
+
 //user route
 const UserRoute = require("./server/user/user.route");
 route.use("/", UserRoute);

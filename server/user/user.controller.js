@@ -745,6 +745,16 @@ exports.updateCoins = async (req, res) => {
     user.rCoin = newCoins;
     await user.save();
 
+    const adminRechargeHistory = new Wallet({
+      userId: user._id,
+      rCoin: req.body.rCoin, // Negative value to indicate deduction
+      paymentGateway: "recharge to user",
+      purchaseDate: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+      date: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    });
+
+    await adminRechargeHistory.save();
+
     // Respond with updated user object
     res.status(200).json({
       success: true,
@@ -759,6 +769,82 @@ exports.updateCoins = async (req, res) => {
     });
   }
 };
+
+// Update rCoins Of User and agency
+exports.updateCoinsAgency = async (req, res) => {
+  console.log(req.body);
+
+  try {
+    // Find the agencyOwner
+    const agencyOwner = await User.findById(req.body.agencyOwner);
+
+    if (!agencyOwner) {
+      return res.status(404).json({
+        success: false,
+        message: "Agency owner not found",
+      });
+    }
+
+    if (agencyOwner.rCoin < req.body.rCoin) {
+      return res.status(500).json({
+        success: false,
+        message: "Insufficient coins",
+      });
+    }
+
+    // Find the user by ID
+    const user = await User.findById(req.body.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update coins in user and agencyOwner
+    user.rCoin += req.body.rCoin;
+    agencyOwner.rCoin -= req.body.rCoin;
+
+    // Save user and agencyOwner
+    await user.save();
+    await agencyOwner.save();
+
+    // Create transaction history for user
+    const userRechargeHistory = new Wallet({
+      userId: user._id,
+      rCoin: req.body.rCoin,
+      paymentGateway: "recharge by agency",
+      purchaseDate: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    });
+    await userRechargeHistory.save();
+
+    // Create transaction history for agencyOwner
+    const agencyRechargeHistory = new Wallet({
+      userId: agencyOwner._id,
+      rCoin: -req.body.rCoin, // Negative value to indicate deduction
+      paymentGateway: "recharge to user",
+      purchaseDate: new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    });
+    await agencyRechargeHistory.save();
+
+    // Respond with updated user and agencyOwner objects
+    res.status(200).json({
+      success: true,
+      message: "Coins delivered successfully",
+      user: user,
+      agencyOwner: agencyOwner,
+    });
+  } catch (error) {
+    console.error("Error delivering rcoin :", error);
+    res.status(500).json({
+      success: false,
+      message: "An error occurred while updating the coins",
+    });
+  }
+};
+
+
 // get user profile of post[feed]
 exports.getProfileUser = async (req, res) => {
   try {

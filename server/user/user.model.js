@@ -67,6 +67,8 @@ const userSchema = new mongoose.Schema(
       message: { type: Boolean, default: true },
     },
 
+    agency: [ { type: mongoose.Schema.Types.ObjectId }],
+
     isVIP: { type: Boolean, default: false },
     plan: {
       planStartDate: { type: String, default: null }, // VIP plan start date

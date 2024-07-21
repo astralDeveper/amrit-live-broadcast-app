@@ -559,18 +559,9 @@ exports.history = async (req, res) => {
       return res.status(200).json({
         status: true,
         message: "Success!!",
-        total:
-          history[0].pageInfo.length > 0
-            ? history[0].pageInfo[0].totalRecord
-            : 0,
-        incomeTotal:
-          history[0].incomeTotal.length > 0
-            ? history[0].incomeTotal[0].income
-            : 0,
-        outgoingTotal:
-          history[0].incomeTotal.length > 0
-            ? history[0].incomeTotal[0].outgoing
-            : 0,
+        total: history[0].pageInfo.length > 0 ? history[0].pageInfo[0].totalRecord: 0,
+        incomeTotal: history[0].incomeTotal.length > 0 ? history[0].incomeTotal[0].income: 0,
+        outgoingTotal: history[0].incomeTotal.length > 0 ? history[0].incomeTotal[0].outgoing : 0,
         history: history[0].income,
       });
     } else if (req.body.type === "call") {

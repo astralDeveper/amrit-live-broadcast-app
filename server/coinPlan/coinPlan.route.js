@@ -13,6 +13,9 @@ router.get("/", checkAccessWithKey(), CoinPlanController.index);
 // get purchase plan history
 router.get("/history", checkAccessWithKey(), CoinPlanController.purchaseHistory);
 
+// all history get api
+router.get("/getAllHistory", CoinPlanController.allPurchaseHistory);
+
 //create coin plan
 router.post("/", checkAccessWithKey(), CoinPlanController.store);
 

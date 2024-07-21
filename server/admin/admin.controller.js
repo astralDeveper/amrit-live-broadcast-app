@@ -1,4 +1,5 @@
 const Admin = require("./admin.model");
+const User = require("../user/user.model");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { deleteFile } = require("../../util/deleteFile");
@@ -8,6 +9,7 @@ const nodemailer = require("nodemailer");
 const Login = require("../login/login.model");
 
 const { compressImage } = require("../../util/compressImage");
+const Agency = require("../agency/agency.model");
 // Simplified function to get the value from the array by index
 function getValueFromIndex(index) {
   const values = [
@@ -94,7 +96,30 @@ exports.login = async (req, res) => {
 
     const admin = await Admin.findOne({ email });
     if (!admin) {
-      return res.status(400).json({ status: false, message: "Oops! Email doesn't exist." });
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(400).json({ status: false, message: "Oops! Email doesn't exist." });
+      } else {
+        const agency = await Agency.findOne({ agencyOwner: user._id });
+
+        if (!agency) return res.status(400).json({ status: false, message: "Oops! Email doesn't exist." });
+
+        const payload = {
+          _id: user._id,
+          name: user.username,
+          email: user.email,
+          image: user.image,
+          flag: '',
+          type: 'agency',
+          agencyId:agency._id,
+          rCoin: user.rCoin,
+        };
+  
+        const token = jwt.sign(payload, config.JWT_SECRET);
+  
+        return res.status(200).json({ status: true, message: "Success!!", token });
+      }
     }
 
     const isPasswordValid = await bcrypt.compare(password, admin.password);
@@ -111,6 +136,7 @@ exports.login = async (req, res) => {
         email: admin.email,
         image: admin.image,
         flag: admin.flag,
+        type: 'admin'
       };
 
       const token = jwt.sign(payload, config.JWT_SECRET);
@@ -511,5 +537,56 @@ exports.setPassword = async (req, res, next) => {
     return res
       .status(500)
       .json({ status: false, error: error.message || "server error" });
+  }
+};
+
+
+
+//  Agency controllers 
+exports.agencyLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ status: false, message: "Invalid details!" });
+    }
+
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(400).json({ status: false, message: "Oops! Email doesn't exist." });
+      }
+      let agency;
+      if (user) {
+        agency = await Agency.findOne({ agencyOwner: user._id });
+      }
+
+    
+
+    // const isPasswordValid = await bcrypt.compare(password, admin.password);
+    // if (!isPasswordValid) {
+    //   return res.status(400).json({ status: false, message: "Oops! Password doesn't match." });
+    // }
+
+    // const data = admin.purchaseCode;
+
+    if (agency) {
+      const payload = {
+        _id: agency._id,
+        agencyName: agency.agencyName,
+        agencyOwner: agency.agencyOwner,
+        agencyTagLine: agency.agencyTagLine,
+        image: agency.image,
+      };
+
+      const token = jwt.sign(payload, config.JWT_SECRET);
+
+      return res.status(200).json({ status: true, message: "Success!!", token });
+    } else {
+      return res.status(400).json({ status: false, message: "Agency not found!"});
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ status: false, error: error.message || "Server Error" });
   }
 };
