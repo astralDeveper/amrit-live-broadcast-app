@@ -5,7 +5,10 @@ const chatTopicSchema = new mongoose.Schema(
     participants: [
       { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // For participants
     ],
-    isBlockUser: { type: Boolean, default: false },
+    blockedUsers: [{
+      userId: mongoose.Schema.Types.ObjectId,
+      isBlockUser: Boolean
+    }],
     messages: [
       {
         sender: {

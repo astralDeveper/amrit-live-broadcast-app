@@ -254,7 +254,7 @@ exports.getChatList = async (req, res) => {
 exports.blockUsers = async (req, res) => {
   try {
     const { userId, blockedUserId } = req.body;
-console.log(req.body)
+
     // Validate input
     if (!userId || !blockedUserId) {
       return res.status(400).json({ status: false, message: "User IDs are required!" });
@@ -284,5 +284,6 @@ console.log(req.body)
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
