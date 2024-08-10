@@ -270,8 +270,7 @@ exports.blockUsers = async (req, res) => {
     console.log(`Updating user with ID: ${blockedUserId}`); // Debugging log
 
     // Update blocked user's status
-    const updateResult = await User.updateOne(
-      { _id: blockedUserId },
+    const updateResult = await User.update(
       { $set: { isBlockUser: true } }
     );
 
