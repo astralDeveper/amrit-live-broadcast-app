@@ -1,11 +1,14 @@
 const mongoose = require("mongoose");
 
-const chatTopicSchema = new mongoose.Schema(
+const conversationSchema = new mongoose.Schema(
   {
     participants: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // For participants
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
     ],
-
     messages: [
       {
         sender: {
@@ -22,14 +25,15 @@ const chatTopicSchema = new mongoose.Schema(
         },
       },
     ],
+    lastMessageTimestamp: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,
-    versionKey: false,
   }
 );
 
-chatTopicSchema.index({ senderUser: 1 });
-chatTopicSchema.index({ receiverUser: 1 });
-
-module.exports = mongoose.model("ChatTopic", chatTopicSchema);
+const Conversation = mongoose.model("Conversation", conversationSchema);
+module.exports = Conversation;

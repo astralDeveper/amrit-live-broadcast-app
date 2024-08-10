@@ -6,6 +6,7 @@ const { compressImage } = require("../../util/compressImage");
 //FCM node
 var FCM = require("fcm-node");
 var config = require("../../config");
+const chatModel = require("./chat.model");
 var fcm = new FCM(config.SERVER_KEY);
 
 // get old chat

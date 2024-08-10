@@ -17,7 +17,7 @@ const upload = multer({
 });
 
 //Get Route Of Chat
-route.get("/getOldChat", checkAccessWithKey(), ChatController.getOldChat);
+route.get("/getOldChat", ChatController.getOldChat);
 
 //create chat-topic
 route.post(
