@@ -269,8 +269,8 @@ exports.blockUsers = async (req, res) => {
 
     // Update blocked user's status
     const updateResult = await User.updateOne(
-      { _id: userId, 'blockedUsers.userId': blockedUserId },
-      { $set: { 'blockedUsers.$.isBlockUser': true } }
+      { _id: blockedUserId },
+      { $set: { isBlockUser: true } }
     );
 
     if (updateResult.modifiedCount === 0) {
@@ -284,6 +284,7 @@ exports.blockUsers = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
 
