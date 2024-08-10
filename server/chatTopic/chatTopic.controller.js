@@ -8,57 +8,51 @@ const dayjs = require("dayjs");
 const arrayShuffle = require("shuffle-array");
 
 exports.store = async (req, res) => {
-  console.log(req.body);
   try {
     const { senderUserId, receiverUserId } = req.body;
-    console.log("THis starts chatting",req.body)
+
     if (!senderUserId || !receiverUserId) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Invalid Details!" });
+      return res.status(400).json({ status: false, message: "Invalid Details!" });
     }
 
     const senderUser = await User.findById(senderUserId);
     if (!senderUser) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Sender User does not exist!" });
-    }
-    const receiverUser = await User.findById(receiverUserId);
-    if (!receiverUser) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Receiver User does not exist!" });
+      return res.status(400).json({ status: false, message: "Sender User does not exist!" });
     }
 
+    const receiverUser = await User.findById(receiverUserId);
+    if (!receiverUser) {
+      return res.status(400).json({ status: false, message: "Receiver User does not exist!" });
+    }
+
+    // Find existing chat topic with the participants
     let chatTopic = await ChatTopic.findOne({
-      $or: [
-        { participants: [senderUserId, receiverUserId] },
-        { participants: [receiverUserId, senderUserId] },
+      $and: [
+        { "participants.userId": senderUserId },
+        { "participants.userId": receiverUserId },
       ],
     });
 
     if (chatTopic) {
-      return res
-        .status(200)
-        .json({ status: true, message: "Success!!", chatTopic });
+      return res.status(200).json({ status: true, message: "Success!!", chatTopic });
     }
 
-    chatTopic = new ChatTopic({ participants: [senderUserId, receiverUserId] });
+    // Create a new chat topic if one doesn't exist
+    chatTopic = new ChatTopic({
+      participants: [
+        { userId: senderUserId }, 
+        { userId: receiverUserId }
+      ]
+    });
     await chatTopic.save();
 
-    return res
-      .status(200)
-      .json({ status: true, message: "Success!!", chatTopic });
+    return res.status(200).json({ status: true, message: "Success!!", chatTopic });
+
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        status: false,
-        error: error.message || "Internal Server Error!",
-      });
+    return res.status(500).json({ status: false, error: error.message || "Internal Server Error!" });
   }
 };
+
 
 // exports.getAllChatTopics = async (req, res) => {
 //   try {
@@ -253,23 +247,28 @@ exports.getChatList = async (req, res) => {
 
 exports.blockUser = async (req, res) => {
   try {
-    const { chatTopicId, userId, isBlockUser } = req.body;
+    const { userId, blockedUserId, isBlockUser } = req.body;
 
     // Validate input
-    if (!chatTopicId || !userId || typeof isBlockUser !== 'boolean') {
-      return res.status(400).json({ status: false, message: "ChatTopic ID, User ID, and block status are required!" });
+    if (!userId || !blockedUserId || typeof isBlockUser !== 'boolean') {
+      return res.status(400).json({ status: false, message: "User IDs and block status are required!" });
     }
 
-    // Verify the chat topic and the participant's existence
-    const updateResult = await ChatTopic.updateOne(
-      { _id: chatTopicId, "participants.userId": userId },
-      { $set: { "isBlockUser": isBlockUser } }
-    );
-    console.log(updateResult,"====================================");
-    
+    // Verify users
+    const user = await User.findById(userId);
+    const blockedUser = await User.findById(blockedUserId);
+    if (!user || !blockedUser) {
+      return res.status(400).json({ status: false, message: "One or both users do not exist!" });
+    }
 
-    if (updateResult.nModified === 0) {
-      return res.status(404).json({ status: false, message: "Failed to update block status or user not found in participants!" });
+    // Update the isBlockUser status in the chat topics
+    const updateResult = await ChatTopic.updateMany(
+      { participants: { $elemMatch: { userId: blockedUserId } } },
+      { $set: { 'participants.$.isBlockUser': isBlockUser } }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(404).json({ status: false, message: "Failed to update block status or no changes were made!" });
     }
 
     return res.status(200).json({ status: true, message: `User ${isBlockUser ? 'blocked' : 'unblocked'} successfully!` });
@@ -279,6 +278,7 @@ exports.blockUser = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
 
