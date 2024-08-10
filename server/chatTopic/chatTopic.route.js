@@ -17,6 +17,6 @@ route.get("/chatListbyid/:userId", ChatTopicController.getAllChatTopicsbyId);
 //create chat topic
 route.post("/createRoom", ChatTopicController.store);
 
-route.patch('/blockfriend', ChatTopicController.blockUser);
+route.put('/blockfriend', ChatTopicController.blockUser);
 
 module.exports = route;
