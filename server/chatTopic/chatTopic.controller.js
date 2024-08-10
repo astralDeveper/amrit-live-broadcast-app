@@ -8,51 +8,57 @@ const dayjs = require("dayjs");
 const arrayShuffle = require("shuffle-array");
 
 exports.store = async (req, res) => {
+  console.log(req.body);
   try {
     const { senderUserId, receiverUserId } = req.body;
-
+    console.log("THis starts chatting",req.body)
     if (!senderUserId || !receiverUserId) {
-      return res.status(400).json({ status: false, message: "Invalid Details!" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Invalid Details!" });
     }
 
     const senderUser = await User.findById(senderUserId);
     if (!senderUser) {
-      return res.status(400).json({ status: false, message: "Sender User does not exist!" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Sender User does not exist!" });
     }
-
     const receiverUser = await User.findById(receiverUserId);
     if (!receiverUser) {
-      return res.status(400).json({ status: false, message: "Receiver User does not exist!" });
+      return res
+        .status(400)
+        .json({ status: false, message: "Receiver User does not exist!" });
     }
 
-    // Find existing chat topic with the participants
     let chatTopic = await ChatTopic.findOne({
-      $and: [
-        { "participants.userId": senderUserId },
-        { "participants.userId": receiverUserId },
+      $or: [
+        { participants: [senderUserId, receiverUserId] },
+        { participants: [receiverUserId, senderUserId] },
       ],
     });
 
     if (chatTopic) {
-      return res.status(200).json({ status: true, message: "Success!!", chatTopic });
+      return res
+        .status(200)
+        .json({ status: true, message: "Success!!", chatTopic });
     }
 
-    // Create a new chat topic if one doesn't exist
-    chatTopic = new ChatTopic({
-      participants: [
-        { userId: senderUserId }, 
-        { userId: receiverUserId }
-      ]
-    });
+    chatTopic = new ChatTopic({ participants: [senderUserId, receiverUserId] });
     await chatTopic.save();
 
-    return res.status(200).json({ status: true, message: "Success!!", chatTopic });
-
+    return res
+      .status(200)
+      .json({ status: true, message: "Success!!", chatTopic });
   } catch (error) {
-    return res.status(500).json({ status: false, error: error.message || "Internal Server Error!" });
+    return res
+      .status(500)
+      .json({
+        status: false,
+        error: error.message || "Internal Server Error!",
+      });
   }
 };
-
 
 // exports.getAllChatTopics = async (req, res) => {
 //   try {
@@ -261,10 +267,9 @@ exports.blockUser = async (req, res) => {
       return res.status(400).json({ status: false, message: "One or both users do not exist!" });
     }
 
-    // Update the isBlockUser status in the chat topics
-    const updateResult = await ChatTopic.updateMany(
-      { participants: { $elemMatch: { userId: blockedUserId } } },
-      { $set: { 'participants.$.isBlockUser': isBlockUser } }
+    // Update the isBlockUser status
+    const updateResult = await User.updateOne(
+     {isBlockUser: isBlockUser }
     );
 
     if (updateResult.modifiedCount === 0) {
@@ -278,8 +283,6 @@ exports.blockUser = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
-
-
 
 
 
