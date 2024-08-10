@@ -267,11 +267,15 @@ exports.blockUsers = async (req, res) => {
       return res.status(400).json({ status: false, message: "One or both users do not exist!" });
     }
 
+    console.log(`Updating user with ID: ${blockedUserId}`); // Debugging log
+
     // Update blocked user's status
     const updateResult = await User.updateOne(
       { _id: blockedUserId },
       { $set: { isBlockUser: true } }
     );
+
+    console.log('Update result:', updateResult); // Debugging log
 
     if (updateResult.modifiedCount === 0) {
       return res.status(404).json({ status: false, message: "Failed to block user or user is already blocked!" });
@@ -284,6 +288,7 @@ exports.blockUsers = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
 
