@@ -253,11 +253,11 @@ exports.getChatList = async (req, res) => {
 
 exports.blockUsers = async (req, res) => {
   try {
-    const { userId, blockedUserId } = req.body;
+    const { userId, blockedUserId, isBlockUser } = req.body;
 
     // Validate input
-    if (!userId || !blockedUserId) {
-      return res.status(400).json({ status: false, message: "User IDs are required!" });
+    if (!userId || !blockedUserId || typeof isBlockUser !== 'boolean') {
+      return res.status(400).json({ status: false, message: "User IDs and block status are required!" });
     }
 
     // Verify users
@@ -267,20 +267,17 @@ exports.blockUsers = async (req, res) => {
       return res.status(400).json({ status: false, message: "One or both users do not exist!" });
     }
 
-    console.log(`Updating user with ID: ${blockedUserId}`); // Debugging log
-
-    // Update blocked user's status
+    // Update the isBlockUser status
     const updateResult = await User.updateOne(
-      { $set: { isBlockUser: true } }
+      { _id: blockedUserId },
+      { $set: { isBlockUser: isBlockUser } }
     );
 
-    console.log('Update result:', updateResult); // Debugging log
-
     if (updateResult.modifiedCount === 0) {
-      return res.status(404).json({ status: false, message: "Failed to block user or user is already blocked!" });
+      return res.status(404).json({ status: false, message: "Failed to update block status or no changes were made!" });
     }
 
-    return res.status(200).json({ status: true, message: "User blocked successfully!" });
+    return res.status(200).json({ status: true, message: `User ${isBlockUser ? 'blocked' : 'unblocked'} successfully!` });
 
   } catch (error) {
     console.error(error);
