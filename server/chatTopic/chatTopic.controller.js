@@ -278,6 +278,12 @@ exports.blockUser = async (req, res) => {
       return res.status(404).json({ status: false, message: "No chat topics found to update!" });
     }
 
+    // Update the blocked user's status
+    await User.updateOne(
+      { _id: userId, 'blockedUsers.userId': { $ne: blockedUserId } },
+      { $push: { blockedUsers: { userId: blockedUserId, isBlockUser: true } } }
+    );
+
     return res.status(200).json({ status: true, message: "User blocked successfully!" });
 
   } catch (error) {
@@ -285,6 +291,7 @@ exports.blockUser = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
 // exports.GetConversation = async (req, res) => {
