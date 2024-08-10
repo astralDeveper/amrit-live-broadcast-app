@@ -251,10 +251,10 @@ exports.getChatList = async (req, res) => {
   }
 };
 
-exports.blockUser = async (req, res) => {
+exports.blockUsers = async (req, res) => {
   try {
     const { userId, blockedUserId } = req.body;
-
+console.log(req.body)
     // Validate input
     if (!userId || !blockedUserId) {
       return res.status(400).json({ status: false, message: "User IDs are required!" });
@@ -269,20 +269,13 @@ exports.blockUser = async (req, res) => {
 
     // Update blocked user's status
     const updateResult = await User.updateOne(
-      { _id: userId, 'blockedUsers.userId': { $ne: blockedUserId } },
-      { $push: { blockedUsers: { userId: blockedUserId, isBlockUser: true } } }
+      { _id: userId, 'blockedUsers.userId': blockedUserId },
+      { $set: { 'blockedUsers.$.isBlockUser': true } }
     );
 
     if (updateResult.modifiedCount === 0) {
       return res.status(404).json({ status: false, message: "Failed to block user or user is already blocked!" });
     }
-
-    // Optionally update chat topics (if needed)
-    // const chatUpdateResult = await ChatTopic.updateMany(
-    //   { participants: { $in: [userId] }, participants: { $in: [blockedUserId] } },
-    //   { $set: { 'participants.$[elem].isBlocked': true } },
-    //   { arrayFilters: [{ 'elem.userId': blockedUserId }] }
-    // );
 
     return res.status(200).json({ status: true, message: "User blocked successfully!" });
 
@@ -293,134 +286,3 @@ exports.blockUser = async (req, res) => {
 };
 
 
-
-// exports.GetConversation = async (req, res) => {
-//   try {
-//     let auth = req.user;
-//     let { id } = req.params;
-
-//     if (!id) {
-//       return res
-//         .status(400)
-//         .json({ message: "Id is required.", status: false });
-//     }
-
-//     let conversation = await Conversation.findOne({
-//       participants: { $all: [auth?._id, id] },
-//     });
-//     return res.status(200).json({ conversation, status: false });
-//   } catch (error) {
-//     return res.status(500).json({ message: error?.message, status: false });
-//   }
-// };
-// exports.DeleteRecentChat = async (req, res) => {
-//   try {
-//     let { id1, id2 } = req.params;
-
-//     if (!id1 || !id2) {
-//       return res
-//         .status(400)
-//         .json({ message: "Both participant IDs are required.", status: false });
-//     }
-
-//     // Find and delete the conversation involving both participants
-//     let result = await Conversation.findOneAndDelete({
-//       participants: { $all: [id1, id2] },
-//     });
-
-//     if (result) {
-//       return res
-//         .status(200)
-//         .json({ message: "Conversation deleted successfully.", status: true });
-//     } else {
-//       return res
-//         .status(404)
-//         .json({ message: "Conversation not found.", status: false });
-//     }
-//   } catch (error) {
-//     return res.status(500).json({ message: error?.message, status: false });
-//   }
-// };
-// exports.GetConversations = async (req, res) => {
-//   try {
-//     let auth = req.body;
-
-//     // Check if the user has an active conversation
-//     if (auth.activeConversation) {
-//       return res.status(403).json({ message: "You are currently in an active conversation", status: false });
-//     }
-
-//     let conversations = await Conversation.find({
-//       participants: { $all: [auth._id] },
-//     }).populate({ path: "participants", select: "name _id image displayName isprofileshown realName" });
-
-//     return res.status(200).json({ conversations, status: true });
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message, status: false });
-//   }
-// };
-
-// exports.checkActiveConversation = async (req, res, next) => {
-//   try {
-//     let auth = req.body;
-
-//     if (auth.activeConversation) {
-//       return res.status(403).json({ message: "You are currently in an active conversation", status: false });
-//     }
-
-//     next();
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message, status: false });
-//   }
-// };
-
-// exports.EndConversation = async (req, res) => {
-//   try {
-//     let auth = req.body;
-//     let { conversationId } = req.body;
-
-//     // Find the conversation and ensure the user is a participant
-//     let conversation = await Conversation.findById(conversationId);
-
-//     if (!conversation.participants.includes(auth._id)) {
-//       return res.status(403).json({ message: "You are not a participant in this conversation", status: false });
-//     }
-
-//     // Clear the active conversation field for all participants
-//     await User.updateMany(
-//       { _id: { $in: conversation.participants } },
-//       { $unset: { activeConversation: "" } }
-//     );
-
-//     return res.status(200).json({ message: "Conversation ended", status: true });
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message, status: false });
-//   }
-// };
-
-// exports.StartConversation = async (req, res) => {
-//   try {
-//     let auth = req.body;
-//     let { participantId } = req.body;
-
-//     // Check if the user has an active conversation
-//     if (auth.activeConversation) {
-//       return res.status(403).json({ message: "You are currently in an active conversation", status: false });
-//     }
-
-//     // Create a new conversation
-//     let conversation = new Conversation({
-//       participants: [auth._id, participantId]
-//     });
-
-//     await conversation.save();
-
-//     // Update user's active conversation
-//     auth.activeConversation = conversation._id;
-//     await auth.save();
-
-//     return res.status(201).json({ conversation, status: true });
-//   } catch (error) {
-//     return res.status(500).json({ message: error.message, status: false });
-//   }
-// };
