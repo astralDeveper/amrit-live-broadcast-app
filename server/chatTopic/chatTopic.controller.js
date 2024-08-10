@@ -11,6 +11,7 @@ exports.store = async (req, res) => {
   console.log(req.body);
   try {
     const { senderUserId, receiverUserId } = req.body;
+    console.log("THis starts chatting",req.body)
     if (!senderUserId || !receiverUserId) {
       return res
         .status(400)

@@ -348,44 +348,56 @@ io.on('connect', (socket) => {
   });
 
   //chat
-  socket.on('chat', async (data) => {
-    console.log('data in chat:  ', data);
+  socket.on("chat", async (data) => {
+    console.log("data in chat:  ", data);
 
-    const chatTopic = await ChatTopic.findById(data?.topic).populate(
-      'receiverUser senderUser'
+    const chatTopic = await ChatTopic.findById(data?.chatTopic).populate(
+      "participants"
     );
-    if (data.messageType === 'message') {
-      let senderUserIdRoom = 'globalRoom:' + chatTopic?.senderUser?._id;
-      let receiverIdRoom = 'globalRoom:' + chatTopic?.receiverUser?._id;
+
+    if (data.messageType === "message") {
+      console.log(data.messageType);
+      let senderUserIdRoom = "globalRoom:" + data?.senderId;
+      let receiverIdRoom =
+        "globalRoom:" +
+        chatTopic?.participants.find((user) => user._id != data.senderId)._id;
 
       if (chatTopic) {
-        const chat = new Chat();
-
-        chat.senderId = data?.senderId;
-        chat.messageType = 'message';
-        chat.message = data?.message;
-        chat.image = null;
-        chat.topic = chatTopic._id;
-        chat.date = new Date().toLocaleString('en-US', {
-          timeZone: 'Asia/Kolkata',
+        const chat = new Chat({
+          senderId: data?.senderId,
+          messageType: "message",
+          message: data?.message,
+          image: null,
+          topic: chatTopic._id,
+          date: new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Kolkata",
+          }),
         });
+
         await chat.save();
 
-        chatTopic.chat = chat._id;
+        chatTopic.messages.push({
+          sender: data.senderId,
+          content: data.text,
+          date: chat.date,
+        });
         await chatTopic.save();
-        io.in(senderUserIdRoom).emit('chat', data);
-        io.in(receiverIdRoom).emit('chat', data);
-        let receiverUser, senderUser;
-        if (
-          chatTopic.senderUser &&
-          chatTopic.senderUser._id.toString() === data.senderId.toString()
-        ) {
-          receiverUser = chatTopic.receiverUser;
-          senderUser = chatTopic.senderUser;
-        } else if (chatTopic.receiverUser && chatTopic.receiverUser._id) {
-          receiverUser = chatTopic.senderUser;
-          senderUser = chatTopic.receiverUser;
-        }
+        console.log("Emitting chat message to:", {
+          senderUserIdRoom,
+          receiverIdRoom,
+          globalRoom: "globalRoom"
+        });
+        io.emit("chat",data)
+        io.in("globalRoom:" + data?.senderId).emit("chat", data);
+        io.in(
+          "globalRoom:" +
+            chatTopic?.participants.find(
+              (user) => user._id.toString() !== data.senderId.toString()
+            )?._id
+        ).emit("chat", data);
+        const receiverUser = chatTopic.participants.find(
+          (user) => user._id.toString() !== data.senderId.toString()
+        );
 
         if (
           receiverUser &&
@@ -396,7 +408,7 @@ io.on('connect', (socket) => {
             to: receiverUser.fcmToken,
             notification: {
               body: chat.message,
-              title: senderUser.name,
+              title: chat.name,
             },
             data: {
               data: {
@@ -404,33 +416,37 @@ io.on('connect', (socket) => {
                 message: chat.message,
                 date: chat.date,
                 chatDate: chat.date,
-                userId: senderUser._id,
-                name: senderUser.name,
-                username: senderUser.username,
-                image: senderUser.image,
-                country: senderUser.country,
-                isVIP: senderUser.isVIP,
-                time: 'Just Now',
+                userId: chat.senderId,
+                name: chat.name,
+                username: chat.username,
+                image: chat.image,
+                country: chat.country,
+                isVIP: chat.isVIP,
+                time: "Just Now",
               },
-              type: 'MESSAGE',
+              type: "MESSAGE",
             },
           };
 
           await fcm.send(payload, function (err, response) {
             if (err) {
-              console.log('Something has gone wrong: ', err);
+              console.log("Something has gone wrong: ", err);
             } else {
-              console.log('Successfully sent with response: ', response);
+              console.log("Successfully sent with response: ", response);
             }
           });
         }
       }
     } else {
-      io.in('globalRoom:' + data?.senderId).emit('chat', data);
-      io.in('globalRoom:' + chatTopic?.receiverUser._id.toString()).emit(
-        'chat',
-        data
-      );
+      io.emit("chat",data)
+      io.in("globalRoom:" + data?.senderId).emit("chat", data);
+      io.in(
+        "globalRoom:" +
+          chatTopic?.participants.find(
+            (user) => user._id.toString() !== data.senderId.toString()
+          )?._id
+      ).emit("chat", data);
+      console.log("======================");
     }
   });
 
