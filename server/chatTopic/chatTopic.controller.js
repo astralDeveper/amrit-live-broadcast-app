@@ -251,6 +251,42 @@ exports.getChatList = async (req, res) => {
   }
 };
 
+exports.blockUser = async (req, res) => {
+  try {
+    const { userId, blockedUserId } = req.body;
+
+    // Validate input
+    if (!userId || !blockedUserId) {
+      return res.status(400).json({ status: false, message: "User IDs are required!" });
+    }
+
+    // Verify users
+    const user = await User.findById(userId);
+    const blockedUser = await User.findById(blockedUserId);
+    if (!user || !blockedUser) {
+      return res.status(400).json({ status: false, message: "One or both users do not exist!" });
+    }
+
+    // Update chat topics to remove blocked user
+    const result = await ChatTopic.updateMany(
+      { participants: { $in: [userId] }, participants: { $in: [blockedUserId] } },
+      { $pull: { participants: blockedUserId } }
+    );
+
+    // Check if any updates were made
+    if (result.nModified === 0) {
+      return res.status(404).json({ status: false, message: "No chat topics found to update!" });
+    }
+
+    return res.status(200).json({ status: true, message: "User blocked successfully!" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
+  }
+};
+
+
 // exports.GetConversation = async (req, res) => {
 //   try {
 //     let auth = req.user;
