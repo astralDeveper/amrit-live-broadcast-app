@@ -269,7 +269,7 @@ exports.blockUsers = async (req, res) => {
 
     // Update the isBlockUser status
     const updateResult = await User.updateOne(
-     {  isBlockUser: isBlockUser }
+     {isBlockUser: isBlockUser}
     );
 
     if (updateResult.modifiedCount === 0) {
