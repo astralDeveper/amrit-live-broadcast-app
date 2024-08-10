@@ -251,7 +251,7 @@ exports.getChatList = async (req, res) => {
   }
 };
 
-exports.blockUsers = async (req, res) => {
+exports.blockUser = async (req, res) => {
   try {
     const { userId, blockedUserId, isBlockUser } = req.body;
 
@@ -267,9 +267,10 @@ exports.blockUsers = async (req, res) => {
       return res.status(400).json({ status: false, message: "One or both users do not exist!" });
     }
 
-    // Update the isBlockUser status
-    const updateResult = await User.updateOne(
-     {isBlockUser: isBlockUser}
+    // Update the isBlockUser status in the chat topics
+    const updateResult = await ChatTopic.updateMany(
+      { participants: { $elemMatch: { userId: blockedUserId } } },
+      { $set: { 'participants.$.isBlockUser': isBlockUser } }
     );
 
     if (updateResult.modifiedCount === 0) {
@@ -283,6 +284,7 @@ exports.blockUsers = async (req, res) => {
     return res.status(500).json({ status: false, message: error.message || "Internal Server Error!" });
   }
 };
+
 
 
 
