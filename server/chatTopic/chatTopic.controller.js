@@ -102,7 +102,7 @@ exports.getAllChatTopicsbyId = async (req, res) => {
     // Fetch chat topics where userId is in the participants array and populate participants with their names and images
     const chatTopics = await ChatTopic.find({
       participants: userId
-    }).populate("participants", "name username image coverImage");
+    }).populate("participants", "name username isBlockUser image coverImage");
 
     // Return the filtered chat topics in the response
     return res
