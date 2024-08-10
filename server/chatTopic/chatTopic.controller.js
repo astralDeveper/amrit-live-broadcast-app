@@ -267,22 +267,22 @@ exports.blockUser = async (req, res) => {
       return res.status(400).json({ status: false, message: "One or both users do not exist!" });
     }
 
-    // Update chat topics to remove blocked user
-    const result = await ChatTopic.updateMany(
-      { participants: { $in: [userId] }, participants: { $in: [blockedUserId] } },
-      { $pull: { participants: blockedUserId } }
-    );
-
-    // Check if any updates were made
-    if (result.nModified === 0) {
-      return res.status(404).json({ status: false, message: "No chat topics found to update!" });
-    }
-
-    // Update the blocked user's status
-    await User.updateOne(
+    // Update blocked user's status
+    const updateResult = await User.updateOne(
       { _id: userId, 'blockedUsers.userId': { $ne: blockedUserId } },
       { $push: { blockedUsers: { userId: blockedUserId, isBlockUser: true } } }
     );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(404).json({ status: false, message: "Failed to block user or user is already blocked!" });
+    }
+
+    // Optionally update chat topics (if needed)
+    // const chatUpdateResult = await ChatTopic.updateMany(
+    //   { participants: { $in: [userId] }, participants: { $in: [blockedUserId] } },
+    //   { $set: { 'participants.$[elem].isBlocked': true } },
+    //   { arrayFilters: [{ 'elem.userId': blockedUserId }] }
+    // );
 
     return res.status(200).json({ status: true, message: "User blocked successfully!" });
 
