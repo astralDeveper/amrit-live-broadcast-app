@@ -13,7 +13,7 @@ module.exports = {
   JWT_SECRET: "JWT_SECRET",
 
   //baseURL
-  baseURL: "http://localhost:5000/",
+  baseURL: "https://livebroadcastingapp-2f9c47b9791e.herokuapp.com/",
 
   //firebase server key for send notification
   SERVER_KEY: "SERVER_KEY",
