@@ -23,7 +23,7 @@ router.get(
 );
 
 // get profile of user who login
-router.get("/user/profile", checkAccessWithKey(), UserController.getProfile);
+router.get("/user/profile",UserController.getProfile);
 
 // get random match for call
 router.get("/user/random", checkAccessWithKey(), UserController.randomMatch);
@@ -81,7 +81,7 @@ router.put(
 
 router.post(
   "/user/update",
-  checkAccessWithKey(),
+  // checkAccessWithKey(),
   upload.fields([{ name: "image" }, { name: "coverImage" }]),
   UserController.updateProfile
 );

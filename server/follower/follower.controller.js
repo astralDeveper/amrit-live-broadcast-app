@@ -156,83 +156,80 @@ exports.unFollow = async (req, res) => {
 exports.followUnFollow = async (req, res) => {
   console.log(req.body);
   try {
-    if (!req.body.fromUserId || !req.body.toUserId)
+    const { fromUserId, toUserId, liveStreamingId } = req.body;
+
+    if (!fromUserId || !toUserId) {
       return res
-        .status(200)
+        .status(400) // Changed to 400 for bad request
         .json({ status: false, message: 'Invalid Details!' });
+    }
 
-    const fromUserExist = await User.findById(req.body.fromUserId);
-
+    const fromUserExist = await User.findById(fromUserId);
     if (!fromUserExist) {
       return res
-        .status(200)
+        .status(404) // Changed to 404 for not found
         .json({ status: false, message: 'User does not Exist!' });
     }
 
-    const toUserExist = await User.findById(req.body.toUserId);
-
+    const toUserExist = await User.findById(toUserId);
     if (!toUserExist) {
       return res
-        .status(200)
+        .status(404)
         .json({ status: false, message: 'User does not Exist!' });
     }
 
     const followUser = await Follower.findOne({
-      $and: [
-        {
-          fromUserId: fromUserExist._id,
-          toUserId: toUserExist._id,
-        },
-      ],
+      fromUserId: fromUserExist._id,
+      toUserId: toUserExist._id,
     });
 
-    // unFollow
     if (followUser) {
+      // Unfollow logic
       await followUser.deleteOne();
-      console.log('unFollowed Done ');
-      res.status(200).send({
+      console.log('Unfollow Done');
+
+      await Promise.all([
+        fromUserExist.following > 0 &&
+          User.updateOne(
+            { _id: fromUserExist._id },
+            { $inc: { following: -1 } }
+          ),
+        toUserExist.followers > 0 &&
+          User.updateOne(
+            { _id: toUserExist._id },
+            { $inc: { followers: -1 } }
+          ),
+      ]);
+
+      return res.status(200).json({
         status: true,
-        message: 'User unFollowed successfully!!',
+        message: 'User unfollowed successfully!',
         isFollow: false,
       });
-      if (fromUserExist.following > 0) {
-        await User.updateOne(
-          { _id: fromUserExist._id },
-          { $inc: { following: -1 } }
-        );
-      }
-      if (toUserExist.followers > 0) {
-        await User.updateOne(
-          { _id: toUserExist._id },
-          { $inc: { followers: -1 } }
-        );
-      }
     } else {
+      // Follow logic
       await new Follower({
         fromUserId: fromUserExist._id,
         toUserId: toUserExist._id,
       }).save();
-      if (req.body.liveStreamingId) {
+
+      if (liveStreamingId) {
         await LiveStreamingHistory.updateOne(
-          { _id: req.body.liveStreamingId },
-          {
-            $inc: { fans: 1 },
-          }
+          { _id: liveStreamingId },
+          { $inc: { fans: 1 } }
         );
       }
-      res.status(200).send({
-        status: true,
-        message: 'User followed successfully!!',
-        isFollow: true,
-      });
-      await User.updateOne(
-        { _id: fromUserExist._id },
-        { $inc: { following: 1 } }
-      );
-      await User.updateOne(
-        { _id: toUserExist._id },
-        { $inc: { followers: 1 } }
-      );
+
+      await Promise.all([
+        User.updateOne(
+          { _id: fromUserExist._id },
+          { $inc: { following: 1 } }
+        ),
+        User.updateOne(
+          { _id: toUserExist._id },
+          { $inc: { followers: 1 } }
+        ),
+      ]);
 
       if (
         toUserExist &&
@@ -250,23 +247,32 @@ exports.followUnFollow = async (req, res) => {
             type: 'USER',
           },
         };
-        await fcm.send(payload, function (err, response) {
+
+        // Send the FCM notification asynchronously
+        fcm.send(payload, (err, response) => {
           if (err) {
-            console.log('Something has gone wrong!', err);
+            console.error('FCM Error:', err);
           } else {
-            console.log(response);
+            console.log('FCM Response:', response);
           }
         });
       }
-      console.log('Follow Done ');
+
+      console.log('Follow Done');
+      return res.status(200).json({
+        status: true,
+        message: 'User followed successfully!',
+        isFollow: true,
+      });
     }
   } catch (error) {
-    console.log(error);
+    console.error('Error:', error);
     return res
       .status(500)
-      .json({ status: false, error: error.message || 'Server Error' });
+      .json({ status: false, message: error.message || 'Server Error' });
   }
 };
+
 
 exports.followerList = async (req, res) => {
   try {

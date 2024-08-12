@@ -14,7 +14,7 @@ const deleteFile = require("../../util/deleteFile");
 const { compressImage } = require("../../util/compressImage");
 const shuffleArray = require("shuffle-array");
 const { validationResult } = require('express-validator');  
-
+const mongoose = require("mongoose");
 
 
 // devive ban
@@ -594,9 +594,10 @@ exports.checkUsername = async (req, res) => {
 
 // get profile of user who login
 exports.getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.query.userId);
 
+  try {
+    console.log(req.query.userId)
+    const user = await User.findById(req.query.userId);
     if (!user)
       return res
         .status(200)
@@ -625,9 +626,10 @@ exports.getProfile = async (req, res) => {
 
 // update profile of user
 exports.updateProfile = async (req, res) => {
+  console.log("edit body", req.body);
+  console.log("edit file", req.files);
+  
   try {
-    console.log("edit body", req.body);
-    console.log("edit file", req.files);
 
     const userNameExist = await User.exists({
       _id: { $ne: mongoose.Types.ObjectId(req.body.userId) },
