@@ -326,6 +326,7 @@ exports.followerList = async (req, res) => {
           gender: '$followers.gender',
           age: '$followers.age',
           image: '$followers.image',
+          coverImage: '$followers.coverImage',
           country: '$followers.country',
           bio: '$followers.bio',
           followers: '$followers.followers',
