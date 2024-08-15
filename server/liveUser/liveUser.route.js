@@ -9,7 +9,7 @@ const checkAccessWithKey = require("../../checkAccess");
 router.get("/liveUser", checkAccessWithKey(), LiveUserController.getLiveUser);
 
 // live the user
-router.post("/user/live", checkAccessWithKey(), LiveUserController.userIsLive);
+router.post("/user/live",  LiveUserController.userIsLive);
 
 //generate Agora token
 router.post(

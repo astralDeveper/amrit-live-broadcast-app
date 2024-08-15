@@ -52,6 +52,7 @@ exports.generateToken = async (req, res) => {
 // live the user
 exports.userIsLive = async (req, res) => {
   try {
+    console.log("thats channel",req.body)
     if (req.body.userId && req.body.channel) {
       const user = await User.findById(req.body.userId);
       if (!user) {
