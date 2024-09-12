@@ -97,10 +97,10 @@ io.on("connect", (socket) => {
       "level"
     );
     if (senderUser && data?.coin <= senderUser?.rCoin) {
-      senderUser.diamond -= data?.coin;
+      senderUser.rCoin -= data?.coin;
       senderUser.spentCoin += data?.coin;
       await senderUser.save();
-
+      console.log("user jo send kr raha ha",senderUser);
       if (receiverUser) {
         const outgoing = new Wallet();
         outgoing.userId = senderUser._id;
@@ -112,8 +112,9 @@ io.on("connect", (socket) => {
           timeZone: "Asia/Kolkata",
         });
         await outgoing.save();
-        receiverUser.rCoin += data?.coin;
+        receiverUser.diamond += data?.coin;
         await receiverUser.save();
+console.log("user jo recive kr raha ha",receiverUser);
 
         const income = new Wallet();
 

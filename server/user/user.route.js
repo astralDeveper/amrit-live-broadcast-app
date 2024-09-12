@@ -10,7 +10,7 @@ const upload = multer({
 
 const checkAccessWithKey = require("../../checkAccess");
 
-// router.use(checkAccessWithKey());
+// router.use(checkAccessWithKey());  
 
 // get user list
 router.get("/getUsers", checkAccessWithKey(), UserController.index);

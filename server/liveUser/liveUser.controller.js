@@ -235,6 +235,7 @@ const LiveUserFunction = async (user, data) => {
 // get live user list
 exports.getLiveUser = async (req, res) => {
   try {
+    console.log("first",req.query.userId )
     const user = await User.findOne({ _id: req.query.userId });
     if (!user)
       return res

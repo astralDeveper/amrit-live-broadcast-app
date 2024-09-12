@@ -6,6 +6,7 @@ const moment = require("moment");
 // get streaming summary
 exports.getStreamingSummary = async (req, res) => {
   try {
+    console.log("IDIDI", req.query.liveStreamingId)
     const liveStreamingHistory = await LiveStreamingHistory.findById(
       req.query.liveStreamingId
     );
